@@ -5,22 +5,22 @@ import (
 	"net/http"
 )
 
-type Links []string
+type Checker []string
 
 type StatusChecker interface {
     Make(links []string) []string
     Check(links []string)
 }
 
-func (l Links) Make(links []string) []string {
+func (s *Checker) Make(links []string) []string {
     for _, link := range links {
-        l = append(l, link)
+        *s = append(*s, link)
     }
 
-    return l
+    return *s
 }
 
-func (l Links) Check(links []string)  {
+func (*Checker) Check(links []string)  {
     for _, link := range links {
          checkStatus(link)
     }
