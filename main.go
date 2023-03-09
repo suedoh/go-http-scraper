@@ -31,30 +31,34 @@ func main() {
         fmt.Print("Enter answer: ")
         answer, _ := reader.ReadString('\n')
 
+        var response *http.Response
         // change to switch
-        if answer == "n" || answer == "no" {
+        switch {
+        case answer == "n" || answer == "no":
             fmt.Println("k Bye")
             os.Exit(1)
-        } else {
-            break
+        case answer == "y" || answer == "yes":
+            fmt.Print("Enter url to scrape: ")
+            url, _ := reader.ReadString('\n')
+            response = getUrl(url)
         }
 
+        lw := logWriter{}
+        io.Copy(lw, response.Body)
+        break
     }
 
-    if len(os.Args) != 2 {
-        fmt.Println("Please include a web address to scrape as an argument")
-        os.Exit(1)
-    }
-    url := os.Args[1]
 
+}
+
+func getUrl(url string) *http.Response {
     resp, err := http.Get(url)
     if err != nil {
         fmt.Println("Error:", err)
         os.Exit(1)
     }
 
-    lw := logWriter{}
-    io.Copy(lw, resp.Body)
+    return resp
 }
 
 func (lw logWriter) Write(bs []byte) (int, error) {
