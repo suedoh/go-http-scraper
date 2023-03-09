@@ -1,5 +1,10 @@
 package status
 
+import (
+	"fmt"
+	"net/http"
+)
+
 type Links []string
 
 type StatusChecker interface {
@@ -17,6 +22,16 @@ func (l Links) Make(links []string) []string {
 
 func (l Links) Check(links []string)  {
     for _, link := range links {
-        
+         checkStatus(link)
     }
+}
+
+func checkStatus(link string)  {
+    _, err := http.Get(link)
+    if err != nil {
+        fmt.Println(link, "is down!")
+        return
+    }
+
+    fmt.Println(link, "is up :)")
 }
