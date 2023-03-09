@@ -1,13 +1,14 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
-    "io"
-    "net/http"
-    "os"
+	"bufio"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 
-    "github.com/suedoh/go-http-scraper/status"
+	"github.com/suedoh/go-http-scraper/status"
 )
 
 type logWriter struct {}
@@ -21,6 +22,7 @@ func main() {
         "http://golang.com",
     }
 
+
     status := &status.Checker{}
     linksToCheck := status.Make(links)
     status.Check(linksToCheck)
@@ -30,35 +32,53 @@ func main() {
         fmt.Println("Would you like to scrape HTML? (y/n)")
         fmt.Print("Enter answer: ")
         answer, _ := reader.ReadString('\n')
+        answer = strings.Replace(answer, "\n", "", -1)
 
-        var response *http.Response
-        // change to switch
         switch {
         case answer == "n" || answer == "no":
             fmt.Println("k Bye")
-            os.Exit(1)
         case answer == "y" || answer == "yes":
             fmt.Print("Enter url to scrape: ")
-            url, _ := reader.ReadString('\n')
-            response = getUrl(url)
+            u, _ := reader.ReadString('\n')
+            url := strings.Replace(u, "\n", "", -1) 
+            getUrl(url)
+        default:
+            continue
         }
 
-        lw := logWriter{}
-        io.Copy(lw, response.Body)
+        // lw := logWriter{}
+        // io.Copy(lw, response.Body)
         break
     }
 
 
 }
 
-func getUrl(url string) *http.Response {
+func getUrl(url string) string {
     resp, err := http.Get(url)
     if err != nil {
         fmt.Println("Error:", err)
         os.Exit(1)
     }
+    defer resp.Body.Close()
 
-    return resp
+    // ReadString
+    r := bufio.NewReader(resp.Body)
+    for {
+        line, err := r.ReadString('\n')
+        if len(line) == 0 && err != nil {
+            if err == io.EOF {
+                break
+            }
+            fmt.Println("Error:", err)
+            os.Exit(1)
+        }
+        line = strings.TrimSuffix(line, "\n")
+
+        fmt.Println(line)
+        return line
+    }
+    return "string"
 }
 
 func (lw logWriter) Write(bs []byte) (int, error) {
