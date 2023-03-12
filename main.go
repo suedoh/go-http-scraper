@@ -23,7 +23,7 @@ func main() {
     }
 
 
-    status := &status.Checker{}
+    status := status.Checker{}
     linksToCheck := status.Make(links)
     status.Check(linksToCheck)
 
@@ -46,39 +46,8 @@ func main() {
             continue
         }
 
-        // lw := logWriter{}
-        // io.Copy(lw, response.Body)
         break
     }
-
-
-}
-
-func getUrl(url string) string {
-    resp, err := http.Get(url)
-    if err != nil {
-        fmt.Println("Error:", err)
-        os.Exit(1)
-    }
-    defer resp.Body.Close()
-
-    // ReadString
-    r := bufio.NewReader(resp.Body)
-    for {
-        line, err := r.ReadString('\n')
-        if len(line) == 0 && err != nil {
-            if err == io.EOF {
-                break
-            }
-            fmt.Println("Error:", err)
-            os.Exit(1)
-        }
-        line = strings.TrimSuffix(line, "\n")
-
-        fmt.Println(line)
-        return line
-    }
-    return "string"
 }
 
 func (lw logWriter) Write(bs []byte) (int, error) {
@@ -89,3 +58,38 @@ func (lw logWriter) Write(bs []byte) (int, error) {
 
     return byteLength, nil
 }
+
+func getUrl(url string) string {
+    resp, err := http.Get(url)
+    if err != nil {
+        fmt.Println("Error:", err)
+        os.Exit(1)
+    }
+    defer resp.Body.Close()
+
+    body, _ := readResponseBody(resp.Body)
+
+    return body
+}
+
+func readResponseBody(resp io.Reader) (string, error) {
+    r := bufio.NewReader(resp)
+    line, err := r.ReadString('\n')
+    for {
+        if len(line) == 0 && err != nil {
+            if err == io.EOF {
+                break
+            }
+            fmt.Println("Error:", err)
+            os.Exit(1)
+        }
+        line = strings.TrimSuffix(line, "\n")
+
+        fmt.Println(line)
+        break
+    }
+
+    return line, err
+}
+
+
